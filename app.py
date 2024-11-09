@@ -1,11 +1,17 @@
 from flask import Flask, request, jsonify
 import requests
 
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
 app = Flask(__name__)
 
 # Your Spotify API credentials
-CLIENT_ID = Client_ID
-CLIENT_SECRET = Client_Secret
+CLIENT_ID = os.getenv('Client_ID')
+CLIENT_SECRET = os.getenv('Client_Secret')
 
 # Function to get Spotify token
 def get_spotify_token():
@@ -15,6 +21,11 @@ def get_spotify_token():
         headers={'Authorization': f'Basic {CLIENT_ID}:{CLIENT_SECRET}'}
     )
     return auth_response.json()['access_token']
+
+
+@app.route('/')
+def home():
+    return '<h1>Welcome to the Homepage!</h1>'
 
 @app.route('/recommend', methods=['POST'])
 def recommend():
@@ -70,5 +81,5 @@ def recommend():
     return jsonify(recommendations)
 
 
-    if __name__ == '__main__':
-        app.run(debug=True)
+if __name__ == '__main__':
+    app.run(debug=True)
