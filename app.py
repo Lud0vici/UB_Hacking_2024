@@ -50,53 +50,33 @@ def recommend():
     data = request.json
     user_input = data['message']
 
-    # Basic keyword-based logic (simple)
-    
-    # Define a dictionary for keyword-to-mood mapping
+    # Define mood keywords
     mood_keywords = {
-    "calm": "chill",
-    "relax": "chill",
-    "focus": "chill",
-    "study": "chill",
-    "party": "happy",
-    "dance": "happy",
-    "celebrate": "happy",
-    "excited": "happy",
-    "sad": "sad",
-    "melancholy": "sad",
-    "lonely": "sad",
-    "breakup": "sad",
-    "workout": "energetic",
-    "run": "energetic",
-    "exercise": "energetic",
-    "high-energy": "energetic",
-    "romantic": "romance",
-    "love": "romance",
-    "date": "romance",
-    "chill": "chill",
-    "sleep": "calm",
-    "happy": "happy",
-    "upbeat": "happy",
-    "nostalgic": "retro",
-    "throwback": "retro",
-}
+        "calm": "chill", "relax": "chill", "focus": "chill", "study": "chill",
+        "party": "happy", "dance": "happy", "celebrate": "happy", "excited": "happy",
+        "sad": "sad", "melancholy": "sad", "lonely": "sad", "workout": "energetic",
+        "romantic": "romance", "love": "romance", "chill": "chill", "sleep": "calm",
+        "happy": "happy", "nostalgic": "retro", "throwback": "retro"
+    }
 
-
-    # Check user input against keywords and get mood, defaulting to 'pop'
     mood = next((mood_keywords[key] for key in mood_keywords if key in user_input), "pop")
-
-
     token = get_spotify_token()
-    
-    # Spotify Recommendations API
+
+    # Get song recommendations from Spotify API
     response = requests.get(
-        f'https://api.spotify.com/v1/recommendations?seed_genres={mood}',
+        f'https://api.spotify.com/v1/recommendations?seed_genres={mood}&limit=10',
         headers={'Authorization': f'Bearer {token}'}
     )
-    songs = response.json()['tracks']
-    recommendations = [{"name": song["name"], "artist": song["artists"][0]["name"]} for song in songs]
-    
+
+    if response.status_code != 200:
+        return jsonify({"error": "Failed to fetch recommendations"}), 500
+
+    # Extract song information
+    tracks = response.json().get('tracks', [])
+    recommendations = [{"name": song["name"], "artist": song["artists"][0]["name"], "uri": song["uri"]} for song in tracks]
+
     return jsonify(recommendations)
+
 
 
 if __name__ == '__main__':
