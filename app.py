@@ -4,8 +4,8 @@ import requests
 app = Flask(__name__)
 
 # Your Spotify API credentials
-CLIENT_ID = 'your_client_id'
-CLIENT_SECRET = 'your_client_secret'
+CLIENT_ID = Client_ID
+CLIENT_SECRET = Client_Secret
 
 # Function to get Spotify token
 def get_spotify_token():
