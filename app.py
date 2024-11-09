@@ -14,13 +14,31 @@ CLIENT_ID = os.getenv('Client_ID')
 CLIENT_SECRET = os.getenv('Client_Secret')
 
 # Function to get Spotify token
+import base64
+
 def get_spotify_token():
+    # Ensure that CLIENT_ID and CLIENT_SECRET are correct and encoded
+    credentials = f'{CLIENT_ID}:{CLIENT_SECRET}'
+    encoded_credentials = base64.b64encode(credentials.encode()).decode('utf-8')
+    
     auth_response = requests.post(
         'https://accounts.spotify.com/api/token',
         data={'grant_type': 'client_credentials'},
-        headers={'Authorization': f'Basic {CLIENT_ID}:{CLIENT_SECRET}'}
+        headers={'Authorization': f'Basic {encoded_credentials}'}
     )
-    return auth_response.json()['access_token']
+    
+    if auth_response.status_code != 200:
+        print("Error:", auth_response.text)
+        return None
+    
+    response_data = auth_response.json()
+    if 'access_token' in response_data:
+        return response_data['access_token']
+    else:
+        print("No access token found in the response")
+        return None
+
+
 
 
 @app.route('/')
