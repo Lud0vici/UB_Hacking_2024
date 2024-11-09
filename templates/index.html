@@ -4,89 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Song Recommender Bot</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f5f5f5;
-            margin: 0;
-            padding: 20px;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        #chat-container {
-            width: 100%;
-            max-width: 500px;
-            height: 600px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            background-color: #fff;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        #chat-box {
-            flex: 1;
-            padding: 10px;
-            overflow-y: auto;
-            border-bottom: 1px solid #ddd;
-        }
-        #chat-box p {
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 10px;
-            max-width: 80%;
-        }
-        .user-message {
-            background-color: #007bff;
-            color: white;
-            align-self: flex-end;
-            text-align: right;
-        }
-        .bot-message {
-            background-color: #e9ecef;
-            color: #333;
-            align-self: flex-start;
-            text-align: left;
-        }
-        #input-container {
-            display: flex;
-            padding: 10px;
-        }
-        #user-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 20px;
-            outline: none;
-        }
-        #send-button {
-            margin-left: 10px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 20px;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        #send-button:hover {
-            background-color: #0056b3;
-        }
-        iframe {
-            margin-top: 10px;
-            border-radius: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/index.css">
 </head>
 <body>
     <h1>Song Recommender Bot</h1>
-    <div id="chat-container">
+    
+    <!-- Login Button -->
+    <div id="login-container">
+        <button id="login-button">Login with Spotify</button>
+    </div>
+
+    <!-- Chat container (hidden until logged in) -->
+    <div id="chat-container" style="display:none;">
         <div id="chat-box"></div>
         <div id="input-container">
             <input type="text" id="user-input" placeholder="Type your message...">
@@ -94,110 +23,6 @@
         </div>
     </div>
 
-    <script>
-        const token = 'YOUR_SPOTIFY_AUTH_TOKEN_HERE';
-
-        async function fetchWebApi(endpoint, method, body) {
-            const res = await fetch(`https://api.spotify.com/${endpoint}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                method,
-                body: JSON.stringify(body)
-            });
-            return await res.json();
-        }
-
-        async function createPlaylist(tracksUri) {
-            const { id: user_id } = await fetchWebApi('v1/me', 'GET');
-
-            // Create a new playlist
-            const playlist = await fetchWebApi(
-                `v1/users/${user_id}/playlists`, 'POST', {
-                    "name": "My Recommendation Playlist",
-                    "description": "Playlist created by Song Recommender Bot",
-                    "public": false
-                }
-            );
-
-            // Add tracks to the playlist
-            await fetchWebApi(
-                `v1/playlists/${playlist.id}/tracks?uris=${tracksUri.join(',')}`,
-                'POST'
-            );
-
-            return playlist;
-        }
-
-        function displayMessage(message, sender) {
-            const chatBox = document.getElementById('chat-box');
-            const messageElement = document.createElement('p');
-            messageElement.classList.add(sender === 'user' ? 'user-message' : 'bot-message');
-            messageElement.innerHTML = message;
-            chatBox.appendChild(messageElement);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        async function sendMessage() {
-            const userInput = document.getElementById('user-input').value.trim();
-
-            if (!userInput) {
-                alert("Please enter a message.");
-                return;
-            }
-
-            displayMessage(`You: ${userInput}`, 'user');
-
-            try {
-                const response = await fetch('/recommend', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: userInput })
-                });
-
-                const data = await response.json();
-
-                if (data.error) {
-                    displayMessage("Bot: Sorry, I couldn't fetch song recommendations.", 'bot');
-                } else {
-                    const recommendations = data.map(song => `${song.name} by ${song.artist}`).join('<br>');
-                    const tracksUri = data.map(song => song.uri);
-
-                    displayMessage(`Bot: Here are some song recommendations:<br>${recommendations}`, 'bot');
-
-                    // Create and embed the playlist
-                    const playlist = await createPlaylist(tracksUri);
-                    displayMessage(`Bot: Playlist created! You can listen to it below:`, 'bot');
-                    embedPlaylist(playlist.id);
-                }
-            } catch (error) {
-                console.error("Error:", error);
-                displayMessage("Bot: There was an error processing your request.", 'bot');
-            }
-
-            document.getElementById('user-input').value = '';
-        }
-
-        function embedPlaylist(playlistId) {
-            const chatBox = document.getElementById('chat-box');
-            const iframe = document.createElement('iframe');
-            iframe.src = `https://open.spotify.com/embed/playlist/${playlistId}?utm_source=generator&theme=0`;
-            iframe.width = "100%";
-            iframe.height = "380";
-            iframe.frameBorder = "0";
-            iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
-            iframe.loading = "lazy";
-            chatBox.appendChild(iframe);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        document.getElementById('send-button').addEventListener('click', sendMessage);
-        document.getElementById('user-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-    </script>
+    <script src="/static/index.js"></script>
 </body>
 </html>
