@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import requests
 
 from dotenv import load_dotenv
@@ -25,7 +25,7 @@ def get_spotify_token():
 
 @app.route('/')
 def home():
-    return '<h1>Welcome to the Homepage!</h1>'
+    return render_template('index.html')
 
 @app.route('/recommend', methods=['POST'])
 def recommend():
