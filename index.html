@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Song Recommender Bot</title>
+</head>
+<body>
+    <h1>Chatbot Song Recommender</h1>
+    <div id="chat-box"></div>
+    <input type="text" id="user-input" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        async function sendMessage() {
+            const message = document.getElementById('user-input').value;
+            const response = await fetch('/recommend', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message })
+            });
+            const songs = await response.json();
+            const chatBox = document.getElementById('chat-box');
+            chatBox.innerHTML += `<p>User: ${message}</p><p>Bot: ${songs.map(song => `${song.name} by ${song.artist}`).join(', ')}</p>`;
+        }
+    </script>
+</body>
+</html>
