@@ -53,21 +53,54 @@ def recommend():
         return jsonify({"error": "Not authorized"}), 401
 
     access_token = session['access_token']
-    user_input = request.json.get('message', 'pop')
+    user_input = request.json.get('message', '').lower()
 
+    # Genre mapping
+    genre_mapping = {
+        "happy": "happy",
+        "sad": "sad",
+        "calm": "chill",
+        "relax": "chill",
+        "focus": "chill",
+        "study": "chill",
+        "party": "party",
+        "workout": "workout",
+        "gaming": "edm",
+        "romantic": "romance",
+        "love": "romance",
+        "energetic": "energetic",
+        "nostalgic": "retro",
+        "throwback": "retro",
+        "pop": "pop"
+    }
+
+    # Determine the seed genre
+    mood = genre_mapping.get(user_input, "pop")
+
+    # Fetch song recommendations
     response = requests.get(
-        f'https://api.spotify.com/v1/recommendations?seed_genres={user_input}&limit=10',
+        f'https://api.spotify.com/v1/recommendations?seed_genres={mood}&limit=10',
         headers={'Authorization': f'Bearer {access_token}'}
     )
 
-    if response.status_code != 200:
-        return jsonify({"error": "Failed to fetch recommendations"}), 500
+    if response.status_code != 200 or not response.json().get('tracks'):
+        # Fallback: Search for tracks using the user input
+        search_response = requests.get(
+            f'https://api.spotify.com/v1/search?q={user_input}&type=track&limit=10',
+            headers={'Authorization': f'Bearer {access_token}'}
+        )
+        search_results = search_response.json().get('tracks', {}).get('items', [])
+        recommendations = [{"name": track["name"], "artist": track["artists"][0]["name"], "uri": track["uri"]} for track in search_results]
+    else:
+        tracks = response.json().get('tracks', [])
+        recommendations = [{"name": song["name"], "artist": song["artists"][0]["name"], "uri": song["uri"]} for song in tracks]
 
-    tracks = response.json().get('tracks', [])
-    recommendations = [{"name": song["name"], "artist": song["artists"][0]["name"], "uri": song["uri"]} for song in tracks]
+    if not recommendations:
+        return jsonify({"error": "No recommendations found"}), 404
+
     session['recommendations'] = [track['uri'] for track in recommendations]
-
     return jsonify(recommendations)
+
 
 @app.route('/create-playlist', methods=['POST'])
 def create_playlist():
