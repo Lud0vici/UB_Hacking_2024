@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Recommendations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #1DB954;
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            width: 100%;
+            max-width: 600px;
+        }
+        li {
+            background-color: #fff;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .song-info {
+            display: flex;
+            justify-content: space-between;
+        }
+        .song-name {
+            font-weight: bold;
+        }
+        #create-playlist-button {
+            margin-top: 20px;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 30px;
+            background-color: #1DB954;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #create-playlist-button:hover {
+            background-color: #1AA34A;
+        }
+        #logout-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            background-color: #ff4d4d;
+            color: #fff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Your Song Recommendations</h1>
+    <ul id="recommendations-list">
+        {% for song in recommendations %}
+            <li>
+                <div class="song-info">
+                    <span class="song-name">{{ song.name }}</span>
+                    <span class="song-artist">by {{ song.artist }}</span>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+    <button id="create-playlist-button" onclick="createPlaylist()">Create Playlist</button>
+    <a href="/logout">
+        <button id="logout-button">Logout</button>
+    </a>
+
+    <script>
+        async function createPlaylist() {
+            const response = await fetch('/create-playlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+
+            if (data.error) {
+                alert("Failed to create playlist. Please try again.");
+            } else {
+                alert("Playlist created successfully! Check your Spotify account.");
+            }
+        }
+    </script>
+</body>
+</html>
