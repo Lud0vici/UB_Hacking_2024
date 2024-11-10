@@ -49,3 +49,39 @@ function embedPlaylist(playlistId) {
 }
 
 document.getElementById('send-button').addEventListener('click', sendMessage);
+
+
+
+async function updateAlbumCover() {
+    const response = await fetch('/current-track');  // Fetch current track info from backend
+    const data = await response.json();
+
+    if (data.error) {
+        console.log('Error fetching current track:', data.error);
+        return;
+    }
+
+    // Update the album cover image and track details
+    const albumCover = document.getElementById('cover');
+    albumCover.style.backgroundImage = `url('${data.album_cover_url}')`; // Set the album cover
+
+    // Display the track name and artist below the album cover
+    const trackInfo = document.getElementById('track-info');
+    if (!trackInfo) {
+        const trackInfoElement = document.createElement('div');
+        trackInfoElement.id = 'track-info';
+        trackInfoElement.style.color = '#fff';
+        document.body.appendChild(trackInfoElement);
+    }
+    trackInfo.innerHTML = `Now Playing: <br>${data.track_name} by ${data.artist_name}`; // Show track name and artist
+
+
+}
+
+// Call the update function when the page loads or periodically
+document.addEventListener('DOMContentLoaded', () => {
+    updateAlbumCover();
+    setInterval(updateAlbumCover, 3000); // Update every 5 seconds (you can adjust this)
+});
+
+document.getElementById('send-button').addEventListener('click', sendMessage);

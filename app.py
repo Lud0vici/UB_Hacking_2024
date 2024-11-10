@@ -35,7 +35,7 @@ def login():
         f"https://accounts.spotify.com/authorize"
         f"?response_type=code"
         f"&client_id={CLIENT_ID}"
-        f"&scope=playlist-modify-private"
+        f"&scope=playlist-modify-private user-library-read user-read-playback-state"
         f"&redirect_uri={REDIRECT_URI}"
     )
     return redirect(auth_url)
@@ -135,6 +135,41 @@ def create_playlist():
     )
 
     return jsonify({"success": True, "playlist_id": playlist_id})
+
+
+@app.route('/current-track')
+def current_track():
+    if 'access_token' not in session:
+        return jsonify({"error": "Not authorized"}), 401
+
+    access_token = session['access_token']
+
+    # Get the current playing track
+    response = requests.get(
+        'https://api.spotify.com/v1/me/player/currently-playing',
+        headers={'Authorization': f'Bearer {access_token}'}
+    )
+
+    #print(response.json())  # Log the response to see what is returned
+
+    if response.status_code != 200 or response.json().get('item') is None:
+        return jsonify({"error": "No track is currently playing"}), 404
+
+    # Extract the relevant information from the response
+    track_info = response.json().get('item', {})
+    track_name = track_info.get('name')
+    artist_name = track_info.get('artists')[0].get('name')
+    album_cover_url = track_info.get('album', {}).get('images', [{}])[0].get('url')
+
+    return jsonify({
+        'track_name': track_name,
+        'artist_name': artist_name,
+        'album_cover_url': album_cover_url
+    })
+
+
+
+
 @app.route('/chat')
 def chat():
     return render_template('chat.html')

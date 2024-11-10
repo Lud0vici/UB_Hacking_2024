@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat with Spotify Bot</title>
+    <script>
+        // Access the token in JavaScript
+        const accessToken = "{{ access_token }}";  // Flask template variable
+        console.log('Spotify Access Token:', accessToken);
+    </script>
     <style>
         /* General Styling */
         * {
@@ -16,12 +21,14 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #fff;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             height: 100vh;
             overflow: hidden;
             position: relative;
+            flex-direction: row; /* Ensure side-by-side layout */
+            padding: 0 20px;
+            gap: 400px; /* Space between the chat and the album */
         }
 
         /* Animated Gradient Background */
@@ -53,15 +60,20 @@
         h1 {
             font-size: 2em;
             margin-bottom: 20px;
+            text-align: center;
         }
 
+        /* Chatbox Styling */
         #chat-container {
             background-color: rgba(0, 0, 0, 0.8);
             border-radius: 15px;
             padding: 20px;
             width: 100%;
             max-width: 600px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
         }
 
         #chat-box {
@@ -146,11 +158,84 @@
             background: #6a1b9a;
             border-radius: 10px;
         }
+
+        /* Vinyl Container - Positioned to the Left */
+        #vinyl-container {
+            width: 300px;  /* Keep it square */
+            height: 300px; /* Keep it square */
+            flex-direction: column;  /* Stack elements vertically */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            order: -1;
+            gap: 20px;
+        }
+
+        #cover {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background-size: cover;
+            background-position: center;
+            z-index: 2;
+            border-radius: 10px;
+            /* box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); */
+            box-shadow: 5px 0 20px 0 rgba(0,0,0,0.6),
+	            inset 0 0 10px 5px rgba(255,255,255,0.2),
+			    inset 0 0 4px 2px rgba(0,0,0,0.2);
+        }
+
+        #vinyl {
+            position: absolute;
+            width: 120%;  /* Make vinyl scale dynamically, but maintain circular shape */
+            height: 120%;  /* Ensure height matches width for circle */
+            background-color: #111;
+            border-radius: 50%;  /* Keep it circular */
+            /* box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6); */
+            box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.6), 0 8px 15px rgba(0, 0, 0, 0.5);
+            animation: spin 10s linear infinite;
+            /* background-size: contain; */
+            background-size: 115%;
+            background-position: center;
+            z-index: 1;
+            top: -10%;  /* Position vinyl at the center vertically */
+            left: 55%; /* Position vinyl at the center horizontally */
+            transform: translate(-50%, -50%); /* Center vinyl relative to top/left */
+            background-image: url("https://cdn.discordapp.com/attachments/792558269624221716/1305078261675720714/pexels-brettjordan-2746823.jpg?ex=6731b858&is=673066d8&hm=e6355d4655d968ad62e8aa26ad1db3aacef594714bbd99a14b382d827136091b&");
+        }
+
+        /* Spinning Animation */
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Track Info Styling */
+        #track-info {
+            width: 100%; /* Full width of the container */
+            text-align: center;
+            font-size: 18px;
+            color: #fff;
+            max-width: 400px;
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+            margin-top: 550px;  /* Adds space between the album and track info */
+            position: relative; /* So it's not positioned relative to vinyl-container */
+            z-index: 3;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);  /* Adds a shadow */
+        }
     </style>
 </head>
 <body>
-    <h1>Spotify Chat Bot</h1>
+    <!-- Chatbox on the left, Vinyl on the right -->
     <div id="chat-container">
+        <h1>Spotify Chat Bot</h1>
         <div id="chat-box"></div>
         <div id="input-container">
             <input type="text" id="user-input" placeholder="Type your mood or genre...">
@@ -159,6 +244,49 @@
         <div id="playlist-container"></div>
     </div>
 
+    <div id="vinyl-container">
+        <!-- Vinyl and Album Cover -->
+        <div id="cover"></div>
+        <div id="vinyl"></div>
+
+        <!-- Track Info -->
+        <div id="track-info">
+            <!-- Track details will appear here -->
+        </div>
+    </div>
+
     <script src="/static/spotify.js"></script>
+    <!-- <script src="https://sdk.scdn.co/spotify-player.js"></script> -->
+    <!-- <script>
+        window.onSpotifyWebPlaybackSDKReady = () => {
+            const player = new Spotify.Player({
+                name: 'Web Playback SDK',
+                getOAuthToken: cb => { 
+                    // Use the token passed from Flask (it will be available as a JavaScript variable)
+                    cb("{{ access_token }}");
+                },
+                volume: 0.5
+            });
+
+            player.addListener('player_state_changed', state => {
+                if (!state) return;
+
+                const track = state.track_window.current_track;
+
+                // Update track info below the album cover
+                const trackInfo = document.getElementById('track-info');
+                trackInfo.innerHTML = `
+                    <strong>Now Playing:</strong> <br>
+                    ${track.name} by ${track.artists[0].name}
+                `;
+
+                // Update album cover image
+                const cover = document.getElementById('cover');
+                cover.style.backgroundImage = `url('${track.album.images[0].url}')`;
+            });
+
+            player.connect();
+        };
+    </script> -->
 </body>
 </html>
