@@ -6,38 +6,84 @@
     <title>Spotify Song Recommender</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-color: #f0f0f0;
+            justify-content: center;
+            background: linear-gradient(to bottom, #121212, #181818);
+            color: #fff;
+            height: 100vh;
             margin: 0;
-            padding: 20px;
         }
+
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+
         h1 {
             color: #1DB954;
+            font-size: 2.5em;
             margin-bottom: 20px;
         }
+
+        p {
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            color: #ccc;
+        }
+
         #login-button {
-            padding: 15px 30px;
+            padding: 15px 40px;
             border: none;
             border-radius: 30px;
             background-color: #1DB954;
             color: #fff;
-            font-size: 16px;
+            font-size: 18px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, transform 0.2s;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
+
         #login-button:hover {
             background-color: #1AA34A;
+            transform: translateY(-3px);
+        }
+
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://source.unsplash.com/1600x900/?music,spotify') no-repeat center center/cover;
+            z-index: -1;
+            filter: blur(8px) brightness(0.5);
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #888;
         }
     </style>
 </head>
 <body>
-    <h1>Welcome to Spotify Song Recommender</h1>
-    <p>Click the button below to log in with Spotify and get personalized song recommendations based on your mood!</p>
-    <a href="/login">
-        <button id="login-button">Login with Spotify</button>
-    </a>
+    <div class="background"></div>
+    <div class="container">
+        <h1>Spotify Song Recommender</h1>
+        <p>Click the button below to log in with Spotify and get personalized song recommendations based on your mood!</p>
+        <a href="/login">
+            <button id="login-button">Login with Spotify</button>
+        </a>
+    </div>
+    <footer>
+        &copy; 2024 Spotify Song Recommender. All rights reserved.
+    </footer>
 </body>
 </html>
